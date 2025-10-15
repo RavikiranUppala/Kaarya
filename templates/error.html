@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - Error {{ error_code }}</title>
+    <link href="../static/Error.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-content">
+            <div class="error-icon">
+                {% if error_code == '404' %}
+                    <i class="fas fa-search"></i>
+                {% elif error_code == '500' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% else %}
+                    <i class="fas fa-times-circle"></i>
+                {% endif %}
+            </div>
+            
+            <div class="error-code">{{ error_code }}</div>
+            <div class="error-message">{{ error_message }}</div>
+            
+            <div class="error-description">
+                {% if error_code == '404' %}
+                    <p>The page you're looking for doesn't exist or has been moved.</p>
+                {% elif error_code == '500' %}
+                    <p>Something went wrong on our end. We're working to fix it.</p>
+                {% else %}
+                    <p>An unexpected error occurred. Please try again later.</p>
+                {% endif %}
+            </div>
+            
+            <div class="error-actions">
+                <a href="{{ url_for('LoginPage') }}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Go to Login
+                </a>
+                <a href="{{ url_for('HomePage') if session.get('IslogedIn') else url_for('LoginPage') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    {{ 'Go to Home' if session.get('IslogedIn') else 'Go to Home' }}
+                </a>
+                <a href="javascript:history.back()" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i>
+                    Go Back
+                </a>
+            </div>
+            
+            <div class="error-help">
+                <p>Need help? <a href="mailto:support@kaarya.com">Contact Support</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

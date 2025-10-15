@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - Register</title>
+    <link href="../static/Register.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        // Form validation and enhancement functions
+        function validateForm() {
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    showFieldError(input, 'This field is required');
+                    isValid = false;
+                } else {
+                    clearFieldError(input);
+                }
+            });
+            
+            // Validate email format
+            const email = document.getElementById('email');
+            if (email.value && !isValidEmail(email.value)) {
+                showFieldError(email, 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Validate phone number
+            const phone = document.getElementById('phone');
+            if (phone.value && !isValidPhone(phone.value)) {
+                showFieldError(phone, 'Please enter a valid 10-digit phone number');
+                isValid = false;
+            }
+            
+            // Validate Aadhar number
+            const aadhar = document.getElementById('aadharnumber');
+            if (aadhar.value && !isValidAadhar(aadhar.value)) {
+                showFieldError(aadhar, 'Please enter a valid 12-digit Aadhar number');
+                isValid = false;
+            }
+            
+            // Validate password match
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmpassword');
+            if (password.value !== confirmPassword.value) {
+                showFieldError(confirmPassword, 'Passwords do not match');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        
+        function isValidPhone(phone) {
+            return /^[0-9]{10}$/.test(phone);
+        }
+        
+        function isValidAadhar(aadhar) {
+            return /^[0-9]{12}$/.test(aadhar);
+        }
+        
+        function showFieldError(field, message) {
+            clearFieldError(field);
+            field.classList.add('error');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
+        
+        function clearFieldError(field) {
+            field.classList.remove('error');
+            const existingError = field.parentNode.querySelector('.field-error');
+            if (existingError) {
+                existingError.remove();
+            }
+        }
+        
+        async function fetchCities() {
+            const pin = document.getElementById("pincode").value;
+            const citySelect = document.getElementById("city");
+            const loadingIcon = document.getElementById("city-loading");
+            
+            console.log("fetchCities called with PIN:", pin); // Debug log
+            
+            if(pin.length < 6) {
+                citySelect.innerHTML = "<option value=''>Enter 6-digit PIN first</option>";
+                return;
+            }
+            
+            loadingIcon.style.display = 'inline-block';
+            citySelect.disabled = true;
+            
+            try {
+                console.log("Sending request to /get_cities with PIN:", pin);
+                const response = await fetch("/get_cities", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pin })
+                });
+                
+                console.log("Response status:", response.status);
+                const data = await response.json();
+                console.log("Response data:", data);
+                
+                citySelect.innerHTML = "";
+
+                if(data.cities && data.cities.length === 0){
+                    const errorMsg = data.error || "No cities found for this PIN";
+                    citySelect.innerHTML = `<option value=''>${errorMsg}</option>`;
+                } else if(data.cities && data.cities.length > 0) {
+                    citySelect.innerHTML = "<option value=''>Select City</option>";
+                    data.cities.forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city;
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    citySelect.innerHTML = "<option value=''>Error: Invalid response</option>";
+                }
+            } catch (error) {
+                console.error("Error fetching cities:", error);
+                citySelect.innerHTML = "<option value=''>Error loading cities</option>";
+            } finally {
+                loadingIcon.style.display = 'none';
+                citySelect.disabled = false;
+            }
+        }
+        
+        function showPassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(fieldId + '-toggle');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            input.value = value;
+        }
+        
+        function formatAadharNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 12) {
+                value = value.substring(0, 12);
+            }
+            input.value = value;
+        }
+        
+        function formatPinCode(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            input.value = value;
+        }
+        
+        // Ensure unique selections across Primary, Secondary, Tertiary skills
+        function updateSkillOptions() {
+            const skill1 = document.getElementById('skill1');
+            const skill2 = document.getElementById('skill2');
+            const skill3 = document.getElementById('skill3');
+
+            const v1 = skill1 ? skill1.value : '';
+            const v2 = skill2 ? skill2.value : '';
+
+            // Helper to disable options matching a set of values
+            const disableMatches = (selectEl, valuesToDisable) => {
+                if (!selectEl) return;
+                Array.from(selectEl.options).forEach(opt => {
+                    if (!opt.value) {
+                        opt.disabled = false; // Keep placeholder always enabled
+                        return;
+                    }
+                    opt.disabled = valuesToDisable.has(opt.value);
+                });
+                // If current selection became disabled, reset to placeholder
+                if (selectEl.selectedOptions.length && selectEl.selectedOptions[0].disabled) {
+                    selectEl.value = '';
+                }
+            };
+
+            // Secondary cannot use Primary
+            disableMatches(skill2, new Set([v1].filter(Boolean)));
+            // Tertiary cannot use Primary or Secondary
+            disableMatches(skill3, new Set([v1, v2].filter(Boolean)));
+        }
+
+        // Real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+                submitBtn.disabled = true;
+                
+                // Re-enable after 3 seconds (in case of slow response)
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 3000);
+            });
+
+            // Attach change listeners to enforce unique skills in real time
+            const skill1 = document.getElementById('skill1');
+            const skill2 = document.getElementById('skill2');
+            const skill3 = document.getElementById('skill3');
+
+            const onSkillChange = () => {
+                // Clear any prior field errors on change
+                if (skill1) clearFieldError(skill1);
+                if (skill2) clearFieldError(skill2);
+                if (skill3) clearFieldError(skill3);
+                updateSkillOptions();
+            };
+
+            if (skill1) skill1.addEventListener('change', onSkillChange);
+            if (skill2) skill2.addEventListener('change', onSkillChange);
+            if (skill3) skill3.addEventListener('change', onSkillChange);
+
+            // Initialize option states on load
+            updateSkillOptions();
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Kaarya - Registration Form</h1>
+        
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+            
+        <form method="POST" enctype="multipart/form-data" id="registrationForm">
+            
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-user"></i>
+                    <h2>Personal Information</h2>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">
+                            <i class="fas fa-user"></i>
+                            Full Name
+                        </label>
+                        <input id="name" placeholder="Enter your full name" type="text" required name="name" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">
+                            <i class="fas fa-phone"></i>
+                            Mobile Number
+                        </label>
+                        <input id="phone" placeholder="Enter 10-digit mobile number" type="tel" required name="phone" 
+                               oninput="formatPhoneNumber(this)" maxlength="10" autocomplete="tel">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i>
+                            Email Address
+                        </label>
+                        <input id="email" placeholder="Enter email address" type="email" required name="email" autocomplete="email">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="qualification">
+                            <i class="fas fa-graduation-cap"></i>
+                            Qualification
+                        </label>
+                        <input id="qualification" placeholder="Enter your qualification" type="text" required name="qualification">
+                    </div>
+                    <div class="form-group">
+                        <label for="pincode">
+                            <i class="fas fa-map-pin"></i>
+                            PIN Code
+                        </label>
+                        <input id="pincode" placeholder="Enter 6-digit PIN code" type="number" required name="pincode" 
+                               oninput="formatPinCode(this); fetchCities()" maxlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">
+                            <i class="fas fa-city"></i>
+                            City
+                            <i id="city-loading" class="fas fa-spinner fa-spin" style="display: none; margin-left: 5px;"></i>
+                        </label>
+                        <select id="city" name="city" required>
+                            <option value="">Enter PIN code first</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-lock"></i>
+                    <h2>Security</h2>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-key"></i>
+                            Password
+                        </label>
+                        <div class="password-container">
+                            <input id="password" placeholder="Create a strong password" required type="password" name="password" autocomplete="new-password">
+                            <button type="button" class="password-toggle" onclick="showPassword('password')">
+                                <i id="password-toggle" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmpassword">
+                            <i class="fas fa-key"></i>
+                            Confirm Password
+                        </label>
+                        <div class="password-container">
+                            <input id="confirmpassword" placeholder="Confirm your password" required type="password" name="confirmpassword" autocomplete="new-password">
+                            <button type="button" class="password-toggle" onclick="showPassword('confirmpassword')">
+                                <i id="confirmpassword-toggle" class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="aadharnumber">
+                            <i class="fas fa-id-card"></i>
+                            Aadhar Number
+                        </label>
+                        <input id="aadharnumber" placeholder="Enter 12-digit Aadhar number" type="number" required name="aadharnumber" 
+                               oninput="formatAadharNumber(this)" maxlength="12">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="section-header">
+                    <i class="fas fa-route"></i>
+                    <h2>Work Preferences</h2>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="distance">
+                            <i class="fas fa-route"></i>
+                            Travel Distance (Km)
+                        </label>
+                        <input id="distance" placeholder="Maximum distance you can travel" type="number" required name="distance" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="skill1">
+                            <i class="fas fa-star"></i>
+                            Primary Skill
+                        </label>
+                        <select id="skill1" name="skill1" required>
+                            <option value="">Select your primary skill</option>
+                            {% for job in bluecollorjobs %}
+                            <option value="{{job}}">{{job}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="skill2">
+                            <i class="fas fa-star-half-alt"></i>
+                            Secondary Skill
+                        </label>
+                        <select id="skill2" name="skill2" required>
+                            <option value="">Select your secondary skill</option>
+                            {% for job in bluecollorjobs %}
+                            <option value="{{job}}">{{job}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="skill3">
+                            <i class="fas fa-star"></i>
+                            Tertiary Skill
+                        </label>
+                        <select id="skill3" name="skill3" required>
+                            <option value="">Select your tertiary skill</option>
+                            {% for job in bluecollorjobs %}
+                            <option value="{{job}}">{{job}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <!-- Empty div for spacing -->
+                    </div>
+                    <div class="form-group">
+                        <!-- Empty div for spacing -->
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="submit-section">
+                <div class="terms-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <span>By registering, you agree to our Terms of Service and Privacy Policy</span>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-user-plus"></i>
+                    Create My Account
+                </button>
+            </div>
+        </form>
+        
+        <div class="login-link">
+            <p>Already have an account? <a href="{{ url_for('LoginPage') }}">Click here to login</a></p>
+        </div>
+    </div>
+</body>
+</html>

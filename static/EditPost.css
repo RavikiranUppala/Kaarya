@@ -1,0 +1,29 @@
+.page-header h1 {
+    margin: 0 0 6px 0;
+}
+
+.error-message, .success-message {
+    margin-bottom: 14px;
+}
+
+.form-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16,24,40,0.08);
+    padding: 16px;
+}
+
+.job-form .section-header h2 {
+    margin: 0;
+}
+
+.submit-btn {
+    background: #111827;
+    color: #ffffff;
+}
+
+.submit-btn:hover {
+    background: #0b1321;
+}
+
+

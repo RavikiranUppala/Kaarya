@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Job Post #{{ post.ID }}</title>
+    <link href="{{ url_for('static', filename='Post.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='EditPost.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const minDate = `${yyyy}-${mm}-${dd}`;
+
+        window.onload = function() {
+            document.getElementById("duedate").setAttribute("min", minDate);
+        };
+
+        async function fetchCitiesPost() {
+            const pin = document.getElementById("postcode").value;
+            const citySelect = document.getElementById("citySelect");
+            const loadingIcon = document.getElementById("city-loading");
+
+            if(pin.length < 6) {
+                citySelect.innerHTML = "<option value=''>Enter 6-digit PIN first</option>";
+                return;
+            }
+
+            loadingIcon.style.display = 'inline-block';
+            citySelect.disabled = true;
+
+            try {
+                const response = await fetch("/get_cities", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pin })
+                });
+                const data = await response.json();
+                citySelect.innerHTML = "";
+                if(data.cities && data.cities.length === 0){
+                    const errorMsg = data.error || "No cities found for this PIN";
+                    citySelect.innerHTML = `<option value=''>${errorMsg}</option>`;
+                } else if(data.cities && data.cities.length > 0) {
+                    citySelect.innerHTML = "<option value=''>Select City</option>";
+                    data.cities.forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city;
+                        option.textContent = city;
+                        if(city === "{{ post.LOCATION }}") option.selected = true;
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    citySelect.innerHTML = "<option value=''>Error: Invalid response</option>";
+                }
+            } catch (error) {
+                citySelect.innerHTML = "<option value=''>Error loading cities</option>";
+            } finally {
+                loadingIcon.style.display = 'none';
+                citySelect.disabled = false;
+            }
+        }
+
+        function formatPinCode(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            input.value = value;
+        }
+
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            input.value = value;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobType = document.getElementById('postype');
+            const ftptSection = document.getElementById('ft-pt-fields');
+            const onetimeSection = document.getElementById('one-time-fields');
+            const workFrom = document.getElementById('work_from');
+            const workTo = document.getElementById('work_to');
+            const oneTimePay = document.getElementById('one_time_pay');
+            const groupPartFrom = document.getElementById('group_part_from');
+            const groupPartTo = document.getElementById('group_part_to');
+            const groupSalaryRow1 = document.getElementById('group_salary_row1');
+            const groupSalaryRow2 = document.getElementById('group_salary_row2');
+            const salaryPmRow1 = document.getElementById('salary_pm_row1');
+            const salaryPmRow2 = document.getElementById('salary_pm_row2');
+
+            function updateConditionalFields() {
+                const type = jobType.value;
+                if (type === 'Full Time' || type === 'Part Time') {
+                    ftptSection.style.display = 'block';
+                    onetimeSection.style.display = 'none';
+                    workFrom.required = true;
+                    workTo.required = true;
+                    oneTimePay.required = false;
+                    if (type === 'Part Time') {
+                        document.getElementById('part_from_date').required = true;
+                        document.getElementById('part_to_date').required = true;
+                        groupPartFrom.style.display = 'block';
+                        groupPartTo.style.display = 'block';
+                        // salary in row2 for part time
+                        groupSalaryRow1.style.display = 'none';
+                        groupSalaryRow2.style.display = 'block';
+                        if (salaryPmRow1 && !salaryPmRow2.value) salaryPmRow2.value = salaryPmRow1.value;
+                        if (salaryPmRow1) salaryPmRow1.required = false;
+                        if (salaryPmRow2) salaryPmRow2.required = true;
+                        if (salaryPmRow1) salaryPmRow1.setAttribute('name', '');
+                        if (salaryPmRow2) salaryPmRow2.setAttribute('name', 'salary_pm');
+                    } else {
+                        document.getElementById('part_from_date').required = false;
+                        document.getElementById('part_to_date').required = false;
+                        groupPartFrom.style.display = 'none';
+                        groupPartTo.style.display = 'none';
+                        // salary in row1 for full time
+                        groupSalaryRow1.style.display = 'block';
+                        groupSalaryRow2.style.display = 'none';
+                        if (salaryPmRow2 && !salaryPmRow1.value) salaryPmRow1.value = salaryPmRow2.value;
+                        if (salaryPmRow1) salaryPmRow1.required = true;
+                        if (salaryPmRow2) salaryPmRow2.required = false;
+                        if (salaryPmRow1) salaryPmRow1.setAttribute('name', 'salary_pm');
+                        if (salaryPmRow2) salaryPmRow2.setAttribute('name', '');
+                    }
+                } else if (type === 'One Time') {
+                    ftptSection.style.display = 'none';
+                    onetimeSection.style.display = 'block';
+                    workFrom.required = false;
+                    workTo.required = false;
+                    if (salaryPmRow1) salaryPmRow1.required = false;
+                    if (salaryPmRow2) salaryPmRow2.required = false;
+                    oneTimePay.required = true;
+                    groupPartFrom.style.display = 'none';
+                    groupPartTo.style.display = 'none';
+                    groupSalaryRow1.style.display = 'none';
+                    groupSalaryRow2.style.display = 'none';
+                    if (salaryPmRow1) salaryPmRow1.setAttribute('name', '');
+                    if (salaryPmRow2) salaryPmRow2.setAttribute('name', '');
+                } else {
+                    ftptSection.style.display = 'none';
+                    onetimeSection.style.display = 'none';
+                    workFrom.required = false;
+                    workTo.required = false;
+                    if (salaryPmRow1) salaryPmRow1.required = false;
+                    if (salaryPmRow2) salaryPmRow2.required = false;
+                    oneTimePay.required = false;
+                    groupPartFrom.style.display = 'none';
+                    groupPartTo.style.display = 'none';
+                    groupSalaryRow1.style.display = 'none';
+                    groupSalaryRow2.style.display = 'none';
+                    if (salaryPmRow1) salaryPmRow1.setAttribute('name', '');
+                    if (salaryPmRow2) salaryPmRow2.setAttribute('name', '');
+                }
+            }
+
+            jobType.addEventListener('change', updateConditionalFields);
+            updateConditionalFields();
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('MyPosts') }}" class="nav-link">
+                    <i class="fas fa-list"></i>
+                    My Posts
+                </a>
+                <a href="{{ url_for('HomePage') }}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{ url_for('Upgrade') }}">
+                            <i class="fas fa-graduation-cap"></i>
+                            Upgrade
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Edit Job Post #{{ post.ID }}</h1>
+            <p>Update your job posting details</p>
+        </div>
+
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="form-container">
+            <form method="POST" class="job-form">
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-briefcase"></i>
+                        <h2>Job Details</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="postfor">
+                                <i class="fas fa-tools"></i>
+                                Job Role
+                            </label>
+                            <select id="postfor" name="postfor" required>
+                                <option value="">Select Job Role</option>
+                                {% for job in Allposts %}
+                                <option value="{{job}}" {% if job == post.POSTNAME %}selected{% endif %}>{{job}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="postcode">
+                                <i class="fas fa-map-pin"></i>
+                                PIN Code
+                            </label>
+                            <input type="text" id="postcode" placeholder="Enter 6-digit PIN code" required name="postcode" value="{{ post.PINCODE }}"
+                                   oninput="formatPinCode(this); fetchCitiesPost()" maxlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="citySelect">
+                                <i class="fas fa-city"></i>
+                                City
+                                <i id="city-loading" class="fas fa-spinner fa-spin" style="display: none; margin-left: 5px;"></i>
+                            </label>
+                            <select id="citySelect" name="city" required>
+                                <option value="{{ post.LOCATION }}" selected>{{ post.LOCATION }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>Job Information</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="postcont">
+                                <i class="fas fa-phone"></i>
+                                Contact Number
+                            </label>
+                            <input type="tel" id="postcont" placeholder="Enter 10-digit contact number" name="postcont" required 
+                                   oninput="formatPhoneNumber(this)" maxlength="10" value="{{ post.PHONE }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="postype">
+                                <i class="fas fa-clock"></i>
+                                Job Type
+                            </label>
+                            <select id="postype" name="postype" required>
+                                <option value="">Select Job Type</option>
+                                <option value="One Time" {% if post.POSTTYPE == 'One Time' %}selected{% endif %}>One Time</option>
+                                <option value="Part Time" {% if post.POSTTYPE == 'Part Time' %}selected{% endif %}>Part Time</option>
+                                <option value="Full Time" {% if post.POSTTYPE == 'Full Time' %}selected{% endif %}>Full Time</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="duedate">
+                                <i class="fas fa-calendar"></i>
+                                Application Deadline
+                            </label>
+                            <input type="date" id="duedate" required name="duedate" value="{{ post.POSTLASTDATE }}">
+                        </div>
+                    </div>
+                    <div id="ft-pt-fields" style="display:none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="work_from">
+                                    <i class="fas fa-hourglass-start"></i>
+                                    Working From
+                                </label>
+                                <input type="time" id="work_from" name="work_from" value="{{ post.WORK_FROM or '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="work_to">
+                                    <i class="fas fa-hourglass-end"></i>
+                                    Working To
+                                </label>
+                                <input type="time" id="work_to" name="work_to" value="{{ post.WORK_TO or '' }}">
+                            </div>
+                            <div class="form-group" id="group_part_from" style="display:none;">
+                                <label for="part_from_date">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    Part-time From Date
+                                </label>
+                                <input type="date" id="part_from_date" name="part_from_date" value="{{ post.PART_FROM_DATE or '' }}">
+                            </div>
+                            <div class="form-group" id="group_salary_row1" style="display:none;">
+                                <label for="salary_pm_row1">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    Salary per Month (₹)
+                                </label>
+                                <input type="number" id="salary_pm_row1" min="0" step="1" placeholder="e.g., 15000" value="{{ post.SALARY_PM or '' }}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" id="group_part_to" style="display:none;">
+                                <label for="part_to_date">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Part-time To Date
+                                </label>
+                                <input type="date" id="part_to_date" name="part_to_date" value="{{ post.PART_TO_DATE or '' }}">
+                            </div>
+                            <div class="form-group" id="group_salary_row2">
+                                <label for="salary_pm_row2">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    Salary per Month (₹)
+                                </label>
+                                <input type="number" id="salary_pm_row2" name="salary_pm" min="0" step="1" placeholder="e.g., 15000" value="{{ post.SALARY_PM or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" id="one-time-fields" style="display:none;">
+                        <div class="form-group">
+                            <label for="one_time_pay">
+                                <i class="fas fa-hand-holding-usd"></i>
+                                One-time Pay (₹)
+                            </label>
+                            <input type="number" id="one_time_pay" name="one_time_pay" min="0" step="1" placeholder="e.g., 800" value="{{ post.ONE_TIME_PAY or '' }}">
+                        </div>
+                    </div>
+                    <div class="form-row" id="part-time-dates" style="display:none;">
+                        <div class="form-group">
+                            <label for="part_from_date">
+                                <i class="fas fa-calendar-plus"></i>
+                                Part-time From Date
+                            </label>
+                            <input type="date" id="part_from_date" name="part_from_date" value="{{ post.PART_FROM_DATE or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="part_to_date">
+                                <i class="fas fa-calendar-check"></i>
+                                Part-time To Date
+                            </label>
+                            <input type="date" id="part_to_date" name="part_to_date" value="{{ post.PART_TO_DATE or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="fas fa-align-left"></i>
+                        <h2>Job Description</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="width:100%">
+                            <label for="description">
+                                <i class="fas fa-paragraph"></i>
+                                Describe the responsibilities and tasks
+                            </label>
+                            <textarea id="description" name="description" rows="5" placeholder="Describe what the job holder should do" maxlength="2000">{{ post.DESCRIPTION }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+

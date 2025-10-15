@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Willing Candidates - Post #{{ post.ID }}</title>
+    <link href="{{ url_for('static', filename='Home.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='WillingCandisate.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('MyPosts') }}" class="nav-link">
+                    <i class="fas fa-list"></i>
+                    My Posts
+                </a>
+                <a href="{{ url_for('HomePage') }}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{ url_for('Upgrade') }}">
+                            <i class="fas fa-graduation-cap"></i>
+                            Upgrade
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Willing Candidates for "{{ post.POSTNAME }}"</h1>
+            <p>Location: {{ post.LOCATION }}, {{ post.PINCODE }} • Type: {{ post.POSTTYPE }}</p>
+        </div>
+
+        {% if candidates %}
+        <div class="table-responsive">
+            <table class="posts-table" cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Name</th>
+                        <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Phone</th>
+                        <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Qualification</th>
+                        <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Skills</th>
+                        <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Connect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in candidates %}
+                    <tr>
+                        <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{ c.name }}</td>
+                        <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{ c.phone }}</td>
+                        <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{ c.qualification }}</td>
+                        <td style="padding:10px; border-bottom:1px solid #f3f4f6;">
+                            {% for s in c.skills.split(',') %}
+                                <span class="badge">{{ s }}</span>
+                            {% endfor %}
+                        </td>
+                        <td style="padding:10px; border-bottom:1px solid #f3f4f6;">
+                            <input type="checkbox" class="connect-checkbox" data-userid="{{ c.user_id if c.user_id else '' }}" {% if c.connect %}checked{% endif %}>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-posts">
+            <div class="no-posts-content">
+                <i class="fas fa-users"></i>
+                <h3>No willing candidates yet</h3>
+                <p>Check back later or broaden your post's criteria</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Handle single-select connect checkbox and call backend
+        (function(){
+            document.addEventListener('change', async function(e){
+                const cb = e.target && e.target.classList && e.target.classList.contains('connect-checkbox') ? e.target : null;
+                if(!cb) return;
+
+                const table = cb.closest('table');
+                if(!table) return;
+
+                // Uncheck all others if current is being checked
+                if(cb.checked){
+                    table.querySelectorAll('.connect-checkbox').forEach(el => { if(el !== cb) el.checked = false; });
+                }
+
+                const candidateUserId = cb.checked ? cb.getAttribute('data-userid') : null;
+                try {
+                    cb.disabled = true;
+                    const resp = await fetch("{{ url_for('SetConnectedCandidate', post_id=post.ID) }}", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ candidate_userid: candidateUserId })
+                    });
+                    if(!resp.ok){
+                        // revert UI on error
+                        cb.checked = !cb.checked;
+                    }
+                } catch(_) {
+                    cb.checked = !cb.checked;
+                } finally {
+                    cb.disabled = false;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
+
+

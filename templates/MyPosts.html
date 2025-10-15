@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - My Job Posts</title>
+    <link href="../static/MyPosts.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .table-responsive {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.08);
+            overflow: hidden;
+        }
+        .posts-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .posts-table thead th {
+            background: #f8fafc;
+            color: #111827;
+            font-weight: 600;
+        }
+        .posts-table th, .posts-table td {
+            padding: 12px 14px;
+        }
+        .posts-table tbody tr {
+            transition: background 120ms ease;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .posts-table tbody tr:hover {
+            background: #f9fbff;
+        }
+        .posts-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        .view-btn, .edit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .view-btn { background: #eef2ff; color: #3730a3; }
+        .view-btn:hover { background: #e0e7ff; }
+        .edit-btn { background: #ecfeff; color: #155e75; }
+        .edit-btn:hover { background: #cffafe; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('HomePage') }}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <a href="{{ url_for('PostAJob') }}" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    Post Job
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{ url_for('Upgrade') }}">
+                            <i class="fas fa-graduation-cap"></i>
+                            Upgrade
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1>My Job Posts</h1>
+            <p>Manage and track your job postings</p>
+        </div>
+        
+        <div class="posts-container">
+            {% if Allposts %}
+            <div class="table-responsive">
+                <table class="posts-table" cellspacing="0" cellpadding="0" style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">ID</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Post Name</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Type</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Location</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Pincode</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Phone</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Apply By</th>
+                            <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in Allposts %}
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">#{{post.ID}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.POSTNAME}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.POSTTYPE}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.LOCATION}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.PINCODE}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.PHONE}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">{{post.POSTLASTDATE}}</td>
+                            <td style="padding:10px; border-bottom:1px solid #f3f4f6;">
+                                <a href="{{ url_for('WillingCandidates', post_id=post.ID) }}" class="view-btn" style="margin-right:8px;">
+                                    <i class="fas fa-users"></i>
+                                    Willing candidates
+                                </a>
+                                <a class="edit-btn" href="{{ url_for('EditPost', post_id=post.ID) }}" style="margin-right:6px;">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-posts">
+                <div class="no-posts-content">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>No job posts yet</h3>
+                    <p>Start by posting your first job opportunity</p>
+                    <a href="{{ url_for('PostAJob') }}" class="create-post-btn">
+                        <i class="fas fa-plus"></i>
+                        Create Job Post
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function editPost(postId) {
+            // Implement edit functionality
+            alert(`Edit post ${postId} - Feature coming soon!`);
+        }
+        
+        function deletePost(postId) {
+            if (confirm(`Are you sure you want to delete post #${postId}?`)) {
+                // Implement delete functionality
+                alert(`Delete post ${postId} - Feature coming soon!`);
+            }
+        }
+        
+        function viewPost(postId) {
+            // Implement view functionality
+            alert(`View post ${postId} - Feature coming soon!`);
+        }
+        
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.post-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - About Us</title>
+    <link href="../static/About.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('HomePage') }}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <a href="{{ url_for('PostAJob') }}" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    Post Job
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{ url_for('Upgrade') }}">
+                            <i class="fas fa-graduation-cap"></i>
+                            Upgrade
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="hero-section">
+            <h1>About Kaarya</h1>
+            <p>Connecting skilled workers with job opportunities across India</p>
+        </div>
+        
+        <div class="content-section">
+            <div class="about-card">
+                <div class="card-header">
+                    <i class="fas fa-bullseye"></i>
+                    <h2>Our Mission</h2>
+                </div>
+                <p>Kaarya is dedicated to bridging the gap between skilled workers and employers across India. We believe that every skilled individual deserves access to meaningful employment opportunities, and every employer should have access to the right talent.</p>
+            </div>
+            
+            <div class="about-card">
+                <div class="card-header">
+                    <i class="fas fa-eye"></i>
+                    <h2>Our Vision</h2>
+                </div>
+                <p>To become India's leading platform for blue-collar job placements, creating a more efficient and transparent job market that benefits both workers and employers while contributing to the nation's economic growth.</p>
+            </div>
+            
+            <div class="about-card">
+                <div class="card-header">
+                    <i class="fas fa-heart"></i>
+                    <h2>Our Values</h2>
+                </div>
+                <p>We are committed to transparency, fairness, and equal opportunity. Our platform ensures that every user, regardless of background, has access to the same quality of service and opportunities.</p>
+            </div>
+        </div>
+        
+        <div class="features-section">
+            <h2>What Makes Us Different</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Location-Based Matching</h3>
+                    <p>Smart algorithms match workers with jobs in their preferred locations</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Verified Profiles</h3>
+                    <p>All profiles are verified to ensure authenticity and trust</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile-First Design</h3>
+                    <p>Optimized for mobile devices to reach workers everywhere</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>Skill Development</h3>
+                    <p>Connect with training centers to enhance your skills</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-section">
+            <h2>Our Impact</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <h3>10,000+</h3>
+                    <p>Active Users</p>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-briefcase"></i>
+                    <h3>5,000+</h3>
+                    <p>Jobs Posted</p>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-handshake"></i>
+                    <h3>3,000+</h3>
+                    <p>Successful Placements</p>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-map"></i>
+                    <h3>50+</h3>
+                    <p>Cities Covered</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contact-section">
+            <h2>Get in Touch</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h4>Email</h4>
+                        <p>support@kaarya.com</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <h4>Phone</h4>
+                        <p>+91 9876543210</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Address</h4>
+                        <p>123 Tech Street, Bangalore, Karnataka 560001</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

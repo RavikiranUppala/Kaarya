@@ -1,0 +1,79 @@
+.table-responsive {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16,24,40,0.08);
+    overflow: hidden;
+}
+
+.posts-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.posts-table thead th {
+    background: #f8fafc;
+    color: #111827;
+    font-weight: 600;
+}
+
+.posts-table th,
+.posts-table td {
+    padding: 12px 14px;
+}
+
+.posts-table tbody tr {
+    transition: background 120ms ease;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.posts-table tbody tr:hover {
+    background: #f9fbff;
+}
+
+.posts-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.badge {
+    display: inline-block;
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    margin-right: 6px;
+}
+
+
+/* Empty state styles */
+.no-posts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+}
+
+.no-posts-content {
+    text-align: center;
+    color: #374151;
+}
+
+.no-posts-content i {
+    font-size: 48px;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.no-posts-content h3 {
+    margin: 8px 0 4px 0;
+    font-size: 20px;
+    color: #111827;
+}
+
+.no-posts-content p {
+    margin: 0;
+    color: #6b7280;
+}
+
+

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - Home</title>
+    <link href="../static/Home.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Fullscreen Loader */
+        #loader-wrapper {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        body.loaded #loader-wrapper {
+            display: none;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-window {
+            background: #ffffff;
+            max-width: 640px;
+            width: calc(100% - 48px);
+            max-height: 70vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.18s ease-out;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(8px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #ececec;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+        .modal-body {
+            padding: 16px;
+            overflow: auto;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div id="loader-wrapper">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('PostAJob') }}" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    Post Job
+                </a>
+                <a href="{{ url_for('Upgrade') }}" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    Upgrade
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{url_for('MyPosts')}}">
+                            <i class="fas fa-list"></i>
+                            My Posts
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    <div class="main-content">
+        {% if not AllRelated %}
+        <div class="welcome-section">
+            <h1>Welcome back, {{UserName}}!</h1>
+            <p>Discover job opportunities that match your skills and location</p>
+        </div>
+        {% endif %}
+        
+        <div class="jobs-container">
+            {% if AllRelated %}
+                <div class="jobs-grid">
+                    {% for related in AllRelated %}
+                    <div class="job-card">
+                        <div class="job-header">
+                            <h3>{{related.POSTNAME}}</h3>
+                            <span class="job-type">{{related.POSTTYPE}}</span>
+                        </div>
+						{% if related.DESCRIPTION %}
+						<div class="job-description-preview" style="margin-bottom: 7px;">{{ related.DESC_PREVIEW }}</div>
+						<div class="full-description" style="display:none;">{{ related.DESCRIPTION }}</div>
+						{% endif %}
+                        <div class="job-details">
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{related.LOCATION}}, {{related.PINCODE}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-phone"></i>
+                                <span>Contact to: {{related.PHONE}}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>Apply by: {{related.POSTLASTDATE}}</span>
+                            </div>
+                            {% if related.POSTTYPE|trim|lower == 'full time' %}
+                            <div class="detail-row" style="display:grid; grid-template-columns: repeat(3, 1fr); column-gap:16px; row-gap:8px; align-items:center;">
+                                <div class="detail-item">
+                                    <i class="fas fa-hourglass-start"></i>
+                                    <span>From: {{ related.WORK_FROM or '—' }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-hourglass-end"></i>
+                                    <span>To: {{ related.WORK_TO or '—' }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    <span>Salary (₹): {{ related.SALARY_PM or '—' }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if related.POSTTYPE|trim|lower == 'part time' %}
+                            <div class="detail-row" style="display:grid; grid-template-columns: repeat(3, 1fr); column-gap:16px; row-gap:8px; align-items:center;">
+                                <div class="detail-item">
+                                    <i class="fas fa-hourglass-start"></i>
+                                    <span>From: {{ related.WORK_FROM or '—' }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-hourglass-end"></i>
+                                    <span>To: {{ related.WORK_TO or '—' }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    <span>Salary (₹): {{ related.SALARY_PM or '—' }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if related.POSTTYPE|trim|lower == 'one time' %}
+                            <div class="detail-row" style="display:grid; grid-template-columns: repeat(3, 1fr); column-gap:16px; row-gap:8px; align-items:center;">
+                                <div class="detail-item">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    <span>Wages(₹): {{ related.SALARY_PM or '—' }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="job-actions">
+                            <form method="post" action="{{ url_for('ApplyForPost', post_id=related.ID) }}">
+                                <button class="apply-btn" type="submit">
+                                    <i class="fas fa-paper-plane"></i>
+                                    {{ 'Cancel' if related.ALREADY_APPLIED else 'Apply Now' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-jobs">
+                    <div class="no-jobs-content">
+                        <i class="fas fa-search"></i>
+                        <h3>No jobs found in your area</h3>
+                        <p>Try expanding your search radius or check back later for new opportunities</p>
+                        <p class="profile-link">
+                            <a href="{{ url_for('Profile') }}">Update Profile</a>
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+
+    <script>
+        // When everything is loaded, hide loader
+        window.addEventListener("load", function(){
+            document.body.classList.add("loaded");
+        });
+
+        // Toggle Apply button text and apply/cancel via fetch
+        (function(){
+            document.addEventListener('click', async function(e){
+                const btn = e.target && e.target.closest('.apply-btn');
+                if(!btn) return;
+                const form = btn.closest('form');
+                if(!form) return;
+                e.preventDefault();
+
+                const currentLabel = btn.textContent.trim();
+                if(currentLabel.toLowerCase().includes('apply')){
+                    // Apply via fetch POST, then toggle to Cancel
+                    try {
+                        btn.disabled = true;
+                        const resp = await fetch(form.action, { method: 'POST', credentials: 'same-origin' });
+                        // If redirected, still consider success
+                        if(resp.ok || resp.redirected){
+                            btn.textContent = 'Cancel';
+                        }
+                    } catch(_) {
+                        // no-op on failure
+                    } finally {
+                        btn.disabled = false;
+                    }
+                } else {
+                    // Cancel application via fetch, then toggle back
+                    try {
+                        btn.disabled = true;
+                        // action like /Home/Apply/<id>, build cancel URL
+                        const cancelUrl = form.action.replace(/\/?$/, '') + '/cancel';
+                        const resp = await fetch(cancelUrl, { method: 'POST', credentials: 'same-origin' });
+                        if(resp.ok){
+                            btn.textContent = 'Apply Now';
+                        }
+                    } catch(_) {
+                        // no-op on failure
+                    } finally {
+                        btn.disabled = false;
+                    }
+                }
+            });
+        })();
+
+        // Description modal open/close
+        (function(){
+            const overlay = document.getElementById('desc-modal');
+            const bodyEl = document.getElementById('desc-modal-body');
+
+            document.addEventListener('click', function(e){
+                if(e.target && e.target.classList.contains('open-desc-modal')){
+                    const card = e.target.closest('.job-card');
+                    if(!card) return;
+                    const hidden = card.querySelector('.full-description');
+                    if(!hidden) return;
+                    bodyEl.innerHTML = hidden.innerHTML;
+                    overlay.classList.add('open');
+                }
+                if(e.target && (e.target.classList.contains('modal-close') || e.target.classList.contains('modal-overlay'))){
+                    overlay.classList.remove('open');
+                    bodyEl.textContent = '';
+                }
+            });
+        })();
+
+        // Improve user dropdown hover usability with small hide delay and click toggle
+        (function(){
+            const dropdown = document.querySelector('.dropdown');
+            if(!dropdown) return;
+            const button = dropdown.querySelector('.user-dropdown');
+            const menu = dropdown.querySelector('.dropdown-content');
+            if(!button || !menu) return;
+
+            let hideTimer = null;
+
+            const openMenu = () => {
+                dropdown.classList.add('open');
+                menu.style.display = 'block';
+            };
+            const scheduleHide = () => {
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => {
+                    dropdown.classList.remove('open');
+                    menu.style.display = 'none';
+                }, 180);
+            };
+            const cancelHide = () => {
+                clearTimeout(hideTimer);
+            };
+
+            // Hover behavior
+            dropdown.addEventListener('mouseenter', () => {
+                cancelHide();
+                openMenu();
+            });
+            dropdown.addEventListener('mouseleave', () => {
+                scheduleHide();
+            });
+
+            // Click to toggle on mobile/desktop
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if(menu.style.display === 'block'){
+                    scheduleHide();
+                } else {
+                    cancelHide();
+                    openMenu();
+                }
+            });
+        })();
+    </script>
+    <!-- One shared modal for descriptions -->
+    <div class="modal-overlay" id="desc-modal">
+        <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="desc-modal-title">
+            <div class="modal-header">
+                <div id="desc-modal-title">Job Description</div>
+                <button type="button" class="modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body" id="desc-modal-body"></div>
+        </div>
+    </div>
+</body>
+</html>

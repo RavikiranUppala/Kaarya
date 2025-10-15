@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaarya - Skill Development</title>
+    <link href="../static/Upgrade.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <span>Kaarya</span>
+            </div>
+            <nav class="nav-links">
+                <a href="{{ url_for('HomePage') }}" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Home
+                </a>
+                <a href="{{ url_for('PostAJob') }}" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    Post Job
+                </a>
+                <div class="dropdown">
+                    <button class="user-dropdown">
+                        <i class="fas fa-user"></i>
+                        {{UserName}}
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('Profile') }}">
+                            <i class="fas fa-user-circle"></i>
+                            Profile
+                        </a>
+                        <a href="{{url_for('MyPosts')}}">
+                            <i class="fas fa-list"></i>
+                            My Posts
+                        </a>
+                        <a href="{{ url_for('Signout') }}">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sign Out
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Skill Development Centers</h1>
+            <p>Enhance your skills with professional training programs</p>
+        </div>
+        
+        <div class="centers-container">
+            {% if allcenters %}
+                <div class="table-wrapper">
+                    <table class="centers-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>For</th>
+                                <th>Phone</th>
+                                <th>Website</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for center in allcenters %}
+                            <tr>
+                                <td>#{{center.ID}}</td>
+                                <td>{{center.NAME}}</td>
+                                <td>{{center.LOCATION}}</td>
+                                <td>{{center.FOR}}</td>
+                                <td>{{center.PHONE}}</td>
+                                <td>
+                                    {% if center.WEBSITE %}
+                                        <a href="{{center.WEBSITE}}" target="_blank" rel="noopener noreferrer" class="website-link">Visit</a>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="contact-btn" onclick="callCenter('{{center.PHONE}}')">
+                                        <i class="fas fa-phone"></i>
+                                        Call
+                                    </button>
+                                    {% if center.WEBSITE %}
+                                    <a href="{{center.WEBSITE}}" target="_blank" rel="noopener noreferrer" class="website-btn">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        Website
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-centers">
+                    <div class="no-centers-content">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h3>No skill centers available</h3>
+                        <p>Check back later for skill development opportunities</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function callCenter(phoneNumber) {
+            if (confirm(`Call ${phoneNumber}?`)) {
+                window.location.href = `tel:${phoneNumber}`;
+            }
+        }
+        
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.center-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
